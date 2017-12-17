@@ -88,6 +88,7 @@ namespace Finegamedesign.Utils
                 int index = PermutationIndex(cards);
                 counts[index]++;
             }
+            string log = "";
             if (m_Verbose)
             {
                 string[] countStrings = new string[numPermutations];
@@ -95,10 +96,10 @@ namespace Finegamedesign.Utils
                 {
                     countStrings[p] = counts[p].ToString();
                 }
-                Debug.Log("TestDeck.AssertShuffle3: Counts ["
+                log = "TestDeck.AssertShuffle3: Counts ["
                     + string.Join(", ", countStrings)
                     + "]. " + message
-                    + " num cards " + numCards);
+                    + " num cards " + numCards;
             }
             float standardDeviations = 6.0f;
             float proportion = 1.0f / numPermutations;
@@ -112,7 +113,7 @@ namespace Finegamedesign.Utils
             {
                 int count = counts[p];
                 Assert.IsTrue(count >= minConfidence && count <= maxConfidence,
-                    count + " is out of confidence interval [" + minConfidence + ", " + maxConfidence + "].  num cards " + numCards + " message " + message);
+                    count + " is out of confidence interval [" + minConfidence + ", " + maxConfidence + "].  num cards " + numCards + " message " + message + "\n" + log);
             }
         }
 
@@ -140,6 +141,12 @@ namespace Finegamedesign.Utils
         public void TestNaiveShuffleUpTo3()
         {
             AssertShuffle(NaiveDeck<int>.ShuffleSwapUpTo, 3, 4, "NaiveDeck SwapUpTo");
+        }
+
+        [Test]
+        public void TestNaiveShuffleModulo()
+        {
+            AssertShuffle(NaiveDeck<int>.ShuffleModulo, 3, 4, "NaiveDeck Modulo");
         }
     }
 }
