@@ -48,6 +48,49 @@ namespace Finegamedesign.Utils
             }
         }
 
+        public static void ShuffleUntilChanged(T[] cards)
+        {
+            ShuffleUntilChanged(cards, 1);
+        }
+
+        // Only omits one permutation: the current shuffling.
+        // To prevent bias, resamples until changed.
+        // In practice with deck of 3 or more, the odds of resampling
+        // is (1/C!) ^ N.
+        // For example chances of 2 samples of 3 cards is 1 in 36.
+        // (1/3!) ^ 2.
+        public static void ShuffleUntilChanged(T[] cards, int minChanges)
+        {
+            int length = cards.Length;
+            int maxAttempts = 4098 / length;
+            if (maxAttempts < 1 || length <= 1)
+            {
+                maxAttempts = 1;
+            }
+            T[] originalCards = (T[])cards.Clone();
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                Shuffle(cards);
+                int numChanges = 0;
+                for (int index = 0; index < length; index++)
+                {
+                    if (!object.Equals(cards[index], originalCards[index]))
+                    {
+                        ++numChanges;
+                    }
+                    if (numChanges >= minChanges)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        public static void ShuffleUntilAllChanged(T[] cards)
+        {
+            ShuffleUntilChanged(cards, cards.Length);
+        }
+
         private int m_Index = -1;
         private int m_Length = -1;
         private T[] m_Cards;
