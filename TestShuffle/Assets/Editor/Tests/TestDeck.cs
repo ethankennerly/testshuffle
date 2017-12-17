@@ -57,6 +57,8 @@ namespace Finegamedesign.Utils
             return index;
         }
 
+        // Returns error message.
+        //
         // 3 integers representing 3 bits:  0, 1, 2.
         // Shift 3 bits to take up 3 bits total.
         // There are 6-permutations of 3 numbers.
@@ -67,7 +69,7 @@ namespace Finegamedesign.Utils
         // Precompute confidence interval above 99.999% (6 standard deviations).
         // Test if within confidence interval.
         // https://onlinecourses.science.psu.edu/stat100/node/56
-        private void AssertShuffle(Action<int[]> shuffle, int numCards, string message)
+        private string DescribeShuffleError(Action<int[]> shuffle, int numCards, string message)
         {
             int numPermutations = numCards;
             for (int c = 2; c < numCards; ++c)
@@ -96,10 +98,10 @@ namespace Finegamedesign.Utils
                 {
                     countStrings[p] = counts[p].ToString();
                 }
-                log = "TestDeck.AssertShuffle3: Counts ["
-                    + string.Join(", ", countStrings)
-                    + "]. " + message
-                    + " num cards " + numCards;
+                log = "TestDeck.DescribeShuffleError: " + message
+                    + ", " + numCards + " cards."
+                    + " Counts [" + string.Join(", ", countStrings) + "].";
+                Debug.Log(log);
             }
             float standardDeviations = 6.0f;
             float proportion = 1.0f / numPermutations;
@@ -112,17 +114,28 @@ namespace Finegamedesign.Utils
             for (int p = 0; p < numPermutations; ++p)
             {
                 int count = counts[p];
-                Assert.IsTrue(count >= minConfidence && count <= maxConfidence,
-                    count + " is out of confidence interval [" + minConfidence + ", " + maxConfidence + "].  num cards " + numCards + " message " + message + "\n" + log);
+                bool isExpected = count >= minConfidence
+                    && count <= maxConfidence;
+                if (!isExpected)
+                {
+                    return "\n" + message + ", " + numCards + " cards. "
+                        + count + " is out of confidence interval ["
+                        + minConfidence + ", " + maxConfidence
+                        + "].\n" + log;
+                }
             }
+            return "";
         }
 
-        private void AssertShuffle(Action<int[]> shuffle, int minCards, int maxCards, string message)
+        private void AssertShuffle(Action<int[]> shuffle, int minCards,
+            int maxCards, string message)
         {
+            string errorMessages = "";
             for (int numCards = minCards; numCards <= maxCards; ++numCards)
             {
-                AssertShuffle(shuffle, numCards, message);
+                errorMessages += DescribeShuffleError(shuffle, numCards, message);
             }
+            Assert.IsTrue(errorMessages == "", errorMessages);
         }
 
         [Test]
